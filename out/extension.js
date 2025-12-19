@@ -142,7 +142,7 @@ function showCodePushedOverlay(context) {
         return;
     }
     // Create webview panel
-    currentPanel = vscode.window.createWebviewPanel('codePushed', 'CODE PUSHED', {
+    currentPanel = vscode.window.createWebviewPanel('gitPushed', 'GIT PUSHED', {
         viewColumn: vscode.ViewColumn.One,
         preserveFocus: false
     }, {
@@ -164,6 +164,15 @@ function showCodePushedOverlay(context) {
             currentPanel.dispose();
         }
     }, 8000);
+    // Handle messages from the webview (for click/keypress dismissal)
+    currentPanel.webview.onDidReceiveMessage(message => {
+        if (message.command === 'dismiss') {
+            stopAudio();
+            if (currentPanel) {
+                currentPanel.dispose();
+            }
+        }
+    }, undefined, context.subscriptions);
     currentPanel.onDidDispose(() => {
         stopAudio();
         currentPanel = undefined;
@@ -175,7 +184,7 @@ function getWebviewContent(imageUri) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CODE PUSHED</title>
+    <title>GIT PUSHED</title>
     <style>
         * {
             margin: 0;
@@ -250,9 +259,22 @@ function getWebviewContent(imageUri) {
 <body>
     <div class="overlay">
         <div class="image-container">
-            <img src="${imageUri}" alt="CODE PUSHED" />
+            <img src="${imageUri}" alt="GIT PUSHED" />
         </div>
     </div>
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        function dismiss() {
+            vscode.postMessage({ command: 'dismiss' });
+        }
+        
+        // Dismiss on click anywhere
+        document.addEventListener('click', dismiss);
+        
+        // Dismiss on any key press
+        document.addEventListener('keydown', dismiss);
+    </script>
 </body>
 </html>`;
 }

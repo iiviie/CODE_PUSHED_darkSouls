@@ -1,9 +1,24 @@
 {
   "name": "elden-code-pushed",
   "displayName": "Elden Code Pushed",
-  "description": "Display an Elden Ring/Dark Souls style 'CODE PUSHED' overlay when you git push",
+  "description": "Display an Elden Ring/Dark Souls style 'CODE PUSHED' overlay with sound effect when you git push",
   "version": "0.0.1",
   "publisher": "iiviie",
+  "license": "MIT",
+  "icon": "media/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iiviie/elden-code-pushed"
+  },
+  "keywords": [
+    "git",
+    "push",
+    "elden ring",
+    "dark souls",
+    "fun",
+    "overlay",
+    "meme"
+  ],
   "engines": {
     "vscode": "^1.74.0"
   },
