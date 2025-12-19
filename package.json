@@ -1,0 +1,36 @@
+{
+  "name": "elden-code-pushed",
+  "displayName": "Elden Code Pushed",
+  "description": "Display an Elden Ring/Dark Souls style 'CODE PUSHED' overlay when you git push",
+  "version": "0.0.1",
+  "publisher": "iiviie",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "elden-code-pushed.testOverlay",
+        "title": "Elden Code: Test CODE PUSHED Overlay"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "^18.0.0",
+    "typescript": "^5.0.0"
+  }
+}
