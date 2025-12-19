@@ -1,7 +1,43 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { exec } from 'child_process';
 
 let currentPanel: vscode.WebviewPanel | undefined = undefined;
+let audioProcess: any = undefined;
+
+function playAudio(audioPath: string) {
+    // Kill any existing audio
+    if (audioProcess) {
+        audioProcess.kill();
+    }
+
+    const platform = process.platform;
+    let command: string;
+
+    if (platform === 'win32') {
+        // Windows - use PowerShell
+        command = `powershell -c "(New-Object Media.SoundPlayer '${audioPath}').PlaySync()"`;
+    } else if (platform === 'darwin') {
+        // macOS
+        command = `afplay "${audioPath}"`;
+    } else {
+        // Linux - try common players
+        command = `ffplay -nodisp -autoexit "${audioPath}" 2>/dev/null || mpv --no-video "${audioPath}" 2>/dev/null || paplay "${audioPath}" 2>/dev/null || aplay "${audioPath}" 2>/dev/null`;
+    }
+
+    audioProcess = exec(command, (error) => {
+        if (error) {
+            console.log('Audio playback error:', error.message);
+        }
+    });
+}
+
+function stopAudio() {
+    if (audioProcess) {
+        audioProcess.kill();
+        audioProcess = undefined;
+    }
+}
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Elden Code Pushed is now active!');
@@ -104,21 +140,28 @@ function showCodePushedOverlay(context: vscode.ExtensionContext) {
         }
     );
 
-    // Get the image URI
+    // Get the image URI for webview
     const imageUri = currentPanel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'media', 'code_pushed.png')
     );
 
+    // Get the actual file path for audio (to play via system)
+    const audioPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'elden_ring_you_died_sound_effect.mp3').fsPath;
+    
+    // Play audio via system
+    playAudio(audioPath);
+
     currentPanel.webview.html = getWebviewContent(imageUri);
 
-    // Auto-close after animation
+    // Auto-close after animation (8 seconds to match audio)
     setTimeout(() => {
         if (currentPanel) {
             currentPanel.dispose();
         }
-    }, 4000);
+    }, 8000);
 
     currentPanel.onDidDispose(() => {
+        stopAudio();
         currentPanel = undefined;
     });
 }
@@ -157,7 +200,7 @@ function getWebviewContent(imageUri: vscode.Uri): string {
             display: flex;
             justify-content: center;
             align-items: center;
-            animation: fadeInOut 4s ease-in-out forwards;
+            animation: fadeInOut 8s ease-in-out forwards;
         }
         
         .image-container {
@@ -178,10 +221,10 @@ function getWebviewContent(imageUri: vscode.Uri): string {
             0% {
                 opacity: 0;
             }
-            15% {
+            10% {
                 opacity: 1;
             }
-            75% {
+            85% {
                 opacity: 1;
             }
             100% {

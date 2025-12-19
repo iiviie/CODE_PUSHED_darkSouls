@@ -118,20 +118,21 @@ function showCodePushedOverlay(context) {
             vscode.Uri.joinPath(context.extensionUri, 'media')
         ]
     });
-    // Get the image URI
+    // Get the image and audio URIs
     const imageUri = currentPanel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'code_pushed.png'));
-    currentPanel.webview.html = getWebviewContent(imageUri);
-    // Auto-close after animation
+    const audioUri = currentPanel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'elden_ring_you_died_sound_effect.mp3'));
+    currentPanel.webview.html = getWebviewContent(imageUri, audioUri);
+    // Auto-close after animation (8 seconds to match audio)
     setTimeout(() => {
         if (currentPanel) {
             currentPanel.dispose();
         }
-    }, 4000);
+    }, 8000);
     currentPanel.onDidDispose(() => {
         currentPanel = undefined;
     });
 }
-function getWebviewContent(imageUri) {
+function getWebviewContent(imageUri, audioUri) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -165,7 +166,7 @@ function getWebviewContent(imageUri) {
             display: flex;
             justify-content: center;
             align-items: center;
-            animation: fadeInOut 4s ease-in-out forwards;
+            animation: fadeInOut 8s ease-in-out forwards;
         }
         
         .image-container {
@@ -186,10 +187,10 @@ function getWebviewContent(imageUri) {
             0% {
                 opacity: 0;
             }
-            15% {
+            10% {
                 opacity: 1;
             }
-            75% {
+            85% {
                 opacity: 1;
             }
             100% {
@@ -215,6 +216,19 @@ function getWebviewContent(imageUri) {
             <img src="${imageUri}" alt="CODE PUSHED" />
         </div>
     </div>
+    <audio id="deathSound">
+        <source src="${audioUri}" type="audio/mpeg">
+    </audio>
+    <script>
+        // Force play audio on load
+        window.addEventListener('load', () => {
+            const audio = document.getElementById('deathSound');
+            audio.volume = 1.0;
+            audio.play().catch(err => {
+                console.log('Audio play failed:', err);
+            });
+        });
+    </script>
 </body>
 </html>`;
 }
