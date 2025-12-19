@@ -255,6 +255,7 @@ function getWebviewContent(imageUri: vscode.Uri): string {
 }
 
 export function deactivate() {
+    stopAudio();
     if (currentPanel) {
         currentPanel.dispose();
     }

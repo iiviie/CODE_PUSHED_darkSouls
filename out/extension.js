@@ -36,7 +36,40 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
+const child_process_1 = require("child_process");
 let currentPanel = undefined;
+let audioProcess = undefined;
+function playAudio(audioPath) {
+    // Kill any existing audio
+    if (audioProcess) {
+        audioProcess.kill();
+    }
+    const platform = process.platform;
+    let command;
+    if (platform === 'win32') {
+        // Windows - use PowerShell
+        command = `powershell -c "(New-Object Media.SoundPlayer '${audioPath}').PlaySync()"`;
+    }
+    else if (platform === 'darwin') {
+        // macOS
+        command = `afplay "${audioPath}"`;
+    }
+    else {
+        // Linux - try common players
+        command = `ffplay -nodisp -autoexit "${audioPath}" 2>/dev/null || mpv --no-video "${audioPath}" 2>/dev/null || paplay "${audioPath}" 2>/dev/null || aplay "${audioPath}" 2>/dev/null`;
+    }
+    audioProcess = (0, child_process_1.exec)(command, (error) => {
+        if (error) {
+            console.log('Audio playback error:', error.message);
+        }
+    });
+}
+function stopAudio() {
+    if (audioProcess) {
+        audioProcess.kill();
+        audioProcess = undefined;
+    }
+}
 function activate(context) {
     console.log('Elden Code Pushed is now active!');
     // Register test command
@@ -118,10 +151,13 @@ function showCodePushedOverlay(context) {
             vscode.Uri.joinPath(context.extensionUri, 'media')
         ]
     });
-    // Get the image and audio URIs
+    // Get the image URI for webview
     const imageUri = currentPanel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'code_pushed.png'));
-    const audioUri = currentPanel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'elden_ring_you_died_sound_effect.mp3'));
-    currentPanel.webview.html = getWebviewContent(imageUri, audioUri);
+    // Get the actual file path for audio (to play via system)
+    const audioPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'elden_ring_you_died_sound_effect.mp3').fsPath;
+    // Play audio via system
+    playAudio(audioPath);
+    currentPanel.webview.html = getWebviewContent(imageUri);
     // Auto-close after animation (8 seconds to match audio)
     setTimeout(() => {
         if (currentPanel) {
@@ -129,10 +165,11 @@ function showCodePushedOverlay(context) {
         }
     }, 8000);
     currentPanel.onDidDispose(() => {
+        stopAudio();
         currentPanel = undefined;
     });
 }
-function getWebviewContent(imageUri, audioUri) {
+function getWebviewContent(imageUri) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -216,23 +253,11 @@ function getWebviewContent(imageUri, audioUri) {
             <img src="${imageUri}" alt="CODE PUSHED" />
         </div>
     </div>
-    <audio id="deathSound">
-        <source src="${audioUri}" type="audio/mpeg">
-    </audio>
-    <script>
-        // Force play audio on load
-        window.addEventListener('load', () => {
-            const audio = document.getElementById('deathSound');
-            audio.volume = 1.0;
-            audio.play().catch(err => {
-                console.log('Audio play failed:', err);
-            });
-        });
-    </script>
 </body>
 </html>`;
 }
 function deactivate() {
+    stopAudio();
     if (currentPanel) {
         currentPanel.dispose();
     }
