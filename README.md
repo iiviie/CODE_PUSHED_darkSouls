@@ -1,5 +1,7 @@
 # Elden Code Pushed
 
+![Elden Code Pushed Demo](resources/eldenCodePushedGif.gif)
+
 A VS Code extension that displays an Elden Ring-style "GIT PUSHED" overlay with sound effect whenever you push code.
 
 ## How it works

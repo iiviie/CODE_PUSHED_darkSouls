@@ -151,13 +151,11 @@ function showCodePushedOverlay(context) {
             vscode.Uri.joinPath(context.extensionUri, 'media')
         ]
     });
-    // Get the image URI for webview
-    const imageUri = currentPanel.webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'code_pushed.png'));
     // Get the actual file path for audio (to play via system)
     const audioPath = vscode.Uri.joinPath(context.extensionUri, 'media', 'elden_ring_you_died_sound_effect.mp3').fsPath;
     // Play audio via system
     playAudio(audioPath);
-    currentPanel.webview.html = getWebviewContent(imageUri);
+    currentPanel.webview.html = getWebviewContent('GIT PUSHED');
     // Auto-close after animation (8 seconds to match audio)
     setTimeout(() => {
         if (currentPanel) {
@@ -178,14 +176,16 @@ function showCodePushedOverlay(context) {
         currentPanel = undefined;
     });
 }
-function getWebviewContent(imageUri) {
+function getWebviewContent(text) {
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIT PUSHED</title>
+    <title>${text}</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
@@ -195,7 +195,7 @@ function getWebviewContent(imageUri) {
         body {
             width: 100vw;
             height: 100vh;
-            background: #000;
+            background: #1a1a1a;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -208,25 +208,71 @@ function getWebviewContent(imageUri) {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: linear-gradient(
+                to bottom,
+                #1a1a1a 0%,
+                #252525 40%,
+                #252525 60%,
+                #1a1a1a 100%
+            );
             display: flex;
             justify-content: center;
             align-items: center;
             animation: fadeInOut 8s ease-in-out forwards;
         }
         
-        .image-container {
+        .dark-band {
+            position: absolute;
             width: 100%;
+            height: 120px;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(20, 20, 20, 0.9) 20%,
+                rgba(15, 15, 15, 1) 50%,
+                rgba(20, 20, 20, 0.9) 80%,
+                transparent 100%
+            );
+        }
+        
+        .text-container {
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 40px 80px;
             animation: scaleIn 0.8s ease-out forwards;
         }
         
-        .image-container img {
-            max-width: 100%;
-            height: auto;
-            filter: drop-shadow(0 0 30px rgba(200, 160, 60, 0.5));
+        .sheen {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                ellipse 60% 50% at 50% 50%,
+                rgba(180, 140, 60, 0.4) 0%,
+                rgba(160, 120, 40, 0.2) 30%,
+                rgba(140, 100, 20, 0.1) 50%,
+                transparent 70%
+            );
+            filter: blur(15px);
+            animation: sheenPulse 3s ease-in-out infinite;
+        }
+        
+        .text {
+            position: relative;
+            font-family: 'Adobe Garamond Pro', 'Cormorant Garamond', 'Garamond', 'Times New Roman', serif;
+            font-size: 4.5rem;
+            font-weight: 400;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-shadow: 
+                0 0 10px rgba(212, 175, 55, 0.8),
+                0 0 20px rgba(212, 175, 55, 0.6),
+                0 0 40px rgba(212, 175, 55, 0.4),
+                0 0 60px rgba(212, 175, 55, 0.2),
+                0 2px 4px rgba(0, 0, 0, 0.8);
         }
         
         @keyframes fadeInOut {
@@ -254,12 +300,25 @@ function getWebviewContent(imageUri) {
                 opacity: 1;
             }
         }
+        
+        @keyframes sheenPulse {
+            0%, 100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+        }
     </style>
 </head>
 <body>
     <div class="overlay">
-        <div class="image-container">
-            <img src="${imageUri}" alt="GIT PUSHED" />
+        <div class="dark-band"></div>
+        <div class="text-container">
+            <div class="sheen"></div>
+            <span class="text">${text}</span>
         </div>
     </div>
     <script>
