@@ -48,7 +48,7 @@ function playAudio(audioPath) {
     let command;
     if (platform === 'win32') {
         // Windows - use PowerShell
-        command = `powershell -c "(New-Object Media.SoundPlayer '${audioPath}').PlaySync()"`;
+        command = `powershell -c "Add-Type -AssemblyName presentationCore; $player = New-Object System.Windows.Media.MediaPlayer; $player.Open([uri]'${audioPath}'); $player.Play(); Start-Sleep 8"`;
     }
     else if (platform === 'darwin') {
         // macOS
@@ -126,13 +126,16 @@ function activate(context) {
 }
 function setupRepoWatcher(repo, context) {
     let previousAhead = repo.state.HEAD?.ahead ?? 0;
+    let previousBranch = repo.state.HEAD?.name ?? '';
     repo.state.onDidChange(() => {
         const currentAhead = repo.state.HEAD?.ahead ?? 0;
-        // If we had commits ahead and now we don't, a push likely happened
-        if (previousAhead > 0 && currentAhead === 0) {
+        const currentBranch = repo.state.HEAD?.name ?? '';
+        const branchChanged = currentBranch !== previousBranch;
+        if (!branchChanged && previousAhead > 0 && currentAhead === 0) {
             showCodePushedOverlay(context);
         }
         previousAhead = currentAhead;
+        previousBranch = currentBranch;
     });
 }
 function showCodePushedOverlay(context) {
