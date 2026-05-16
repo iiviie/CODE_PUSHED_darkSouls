@@ -16,7 +16,7 @@ function playAudio(audioPath: string) {
 
     if (platform === 'win32') {
         // Windows - use PowerShell
-        command = `powershell -c "(New-Object Media.SoundPlayer '${audioPath}').PlaySync()"`;
+        command = `powershell -c "Add-Type -AssemblyName presentationCore; $player = New-Object System.Windows.Media.MediaPlayer; $player.Open([uri]'${audioPath}'); $player.Play(); Start-Sleep 8"`;
     } else if (platform === 'darwin') {
         // macOS
         command = `afplay "${audioPath}"`;
