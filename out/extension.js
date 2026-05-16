@@ -126,13 +126,16 @@ function activate(context) {
 }
 function setupRepoWatcher(repo, context) {
     let previousAhead = repo.state.HEAD?.ahead ?? 0;
+    let previousBranch = repo.state.HEAD?.name ?? '';
     repo.state.onDidChange(() => {
         const currentAhead = repo.state.HEAD?.ahead ?? 0;
-        // If we had commits ahead and now we don't, a push likely happened
-        if (previousAhead > 0 && currentAhead === 0) {
+        const currentBranch = repo.state.HEAD?.name ?? '';
+        const branchChanged = currentBranch !== previousBranch;
+        if (!branchChanged && previousAhead > 0 && currentAhead === 0) {
             showCodePushedOverlay(context);
         }
         previousAhead = currentAhead;
+        previousBranch = currentBranch;
     });
 }
 function showCodePushedOverlay(context) {
